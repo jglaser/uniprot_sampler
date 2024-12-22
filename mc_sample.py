@@ -146,7 +146,7 @@ LIMIT 1000
 """
 
 @retry(stop_max_attempt_number=10,
-       stop_max_delay=5000, # 5s
+       wait_fixed=5000, # 5s
        )
 def fetch(decimate):
     query = query_template.replace('_identity_',identity)
