@@ -8,9 +8,9 @@ from retrying import retry
 endpoint = "https://sparql.uniprot.org/sparql"
 sparql = SPARQLWrapper(endpoint)
 sparql.setReturnFormat(JSON)
-sparql.setTimeout(60)
+sparql.setTimeout(120)
 
-NUM_WORKERS=16
+NUM_WORKERS=32
 identity = sys.argv[1]
 
 query_template = """
@@ -145,12 +145,16 @@ ORDER BY ?uniprot
 LIMIT 1000
 """
 
-@retry(stop_max_attempt_number=3,
+@retry(stop_max_attempt_number=10,
        stop_max_delay=5000, # 5s
        )
 def fetch(decimate):
     query = query_template.replace('_identity_',identity)
     query = query.replace('_decimate_',f'{decimate}')
+
+    # random comment to prevent caching
+    import numpy as np
+    query = "#{}\n".format(np.random.rand(1)) + query
 
     sparql.setQuery(query)
     results = sparql.query().convert()
